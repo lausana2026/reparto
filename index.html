@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RepARTO — Punta del Este</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6fa;--surface:#ffffff;--surface2:#edf0f7;--accent:#d4820a;--accent2:#e05c2a;--green:#1e8c4a;--red:#c0392b;--blue:#2471a3;--muted:#3d4f63;--text:#0a0f1a;--border:#d5dae6;--radius:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:17px;}
+header{background:var(--surface);border-bottom:2px solid var(--accent);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Bebas Neue';font-size:26px;letter-spacing:3px;color:var(--accent);}
+.logo span{color:var(--accent2);}
+.hdate{font-size:11px;color:var(--muted);text-align:right;}
+.sync-indicator{font-size:10px;color:var(--muted);margin-top:2px;}
+.sync-indicator.ok{color:var(--green);}.sync-indicator.err{color:var(--red);}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;position:sticky;top:54px;z-index:100;}
+.tab{padding:12px 16px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;text-transform:uppercase;letter-spacing:.6px;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.main{padding:18px 15px;max-width:720px;margin:0 auto;}
+.stitle{font-family:'Bebas Neue';font-size:17px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:22px;}
+@media(max-width:480px){.cards{grid-template-columns:repeat(2,1fr);}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 10px;text-align:center;}
+.clabel{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+.cval{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;}
+.cval.g{color:var(--green);}.cval.r{color:var(--red);}.cval.y{color:var(--accent);}.cval.b{color:var(--blue);}
+.fbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+.ftitle{font-family:'Bebas Neue';font-size:19px;letter-spacing:2px;color:var(--accent);margin-bottom:14px;}
+.frow{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap;}
+.fg{display:flex;flex-direction:column;flex:1;min-width:130px;}
+label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:4px;}
+input,select,textarea{background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-family:'DM Sans';font-size:15px;outline:none;transition:border-color .2s;width:100%;}
+textarea{resize:vertical;min-height:64px;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:var(--surface2);}
+.btn{border:none;border-radius:8px;cursor:pointer;font-family:'Bebas Neue';letter-spacing:1.5px;transition:opacity .2s;}
+.btn:hover{opacity:.82;}
+.btn-primary{background:var(--accent);color:#0d1117;padding:11px 18px;font-size:17px;}
+.btn-full{width:100%;padding:12px;font-size:17px;}
+.btn-sm{font-family:'DM Sans';font-size:12px;font-weight:600;padding:5px 10px;letter-spacing:0;}
+.btn-ghost{background:var(--surface2);color:var(--text);}
+.btn-red{background:rgba(231,76,60,.15);color:var(--red);}
+.btn-blue{background:rgba(52,152,219,.2);color:var(--blue);}
+.viaje-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.viaje-header{display:flex;align-items:center;gap:12px;padding:14px 15px;cursor:pointer;}
+.viaje-bar{width:4px;border-radius:4px;align-self:stretch;flex-shrink:0;}
+.viaje-info{flex:1;}
+.viaje-nombre{font-weight:700;font-size:17px;}
+.viaje-meta{font-size:13px;color:var(--muted);margin-top:2px;}
+.viaje-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:3px 8px;border-radius:20px;}
+.badge-ruta{background:rgba(245,200,66,.15);color:var(--accent);}
+.badge-liq{background:rgba(39,174,96,.15);color:var(--green);}
+.viaje-monto{font-family:'Bebas Neue';font-size:20px;}
+.viaje-body{border-top:1px solid var(--border);display:none;}
+.viaje-body.open{display:block;}
+.vsec{padding:14px 15px;border-bottom:1px solid var(--border);}
+.vsec:last-child{border-bottom:none;}
+.vsec-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;font-weight:600;}
+.cr-row{background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;}
+.cr-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.cr-info{flex:1;}
+.cr-nombre{font-weight:700;font-size:17px;}
+.cr-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+.cr-nota{font-size:12px;color:var(--accent);margin-top:4px;font-style:italic;}
+.cr-monto{font-family:'Bebas Neue';font-size:18px;flex-shrink:0;}
+.liq-resultado{background:var(--bg);border-radius:10px;padding:14px;margin-top:6px;}
+.liq-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:15px;border-bottom:1px solid var(--border);}
+.liq-row:last-child{border-bottom:none;}
+.liq-row.total{font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;margin-top:6px;padding-top:10px;border-top:2px solid var(--border);}
+.liq-label{color:var(--muted);}
+.liq-val{font-weight:600;}
+.cli-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.cli-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px;}
+.chip-x{cursor:pointer;color:var(--red);font-size:15px;line-height:1;}
+.empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;}
+.empty-icon{font-size:36px;margin-bottom:8px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:520px;padding:20px;margin:auto;}
+.modal-title{font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{cursor:pointer;color:var(--muted);font-size:20px;}
+.sec-div{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:6px;margin:14px 0 10px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Rep<span>ARTO</span></div>
+  <div><div class="hdate" id="hdate"></div><div class="sync-indicator" id="sync-status">● Conectando...</div></div>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+  <div class="tab" onclick="showTab('nuevo')">+ Nuevo Viaje</div>
+  <div class="tab" onclick="showTab('viajes')">Viajes</div>
+  <div class="tab" onclick="showTab('descarga')">📦 Descarga</div>
+  <div class="tab" onclick="showTab('config')">Config</div>
+</div>
+<div class="main">
+  <div id="tab-dashboard">
+    <div id="dash-cards" style="margin-bottom:16px"></div>
+    <div class="stitle">Viajes Recientes</div>
+    <div id="dash-list"><div class="empty"><div class="empty-icon">📦</div>Sin registros aún</div></div>
+  </div>
+
+  <div id="tab-nuevo" style="display:none">
+    <div class="fbox">
+      <div class="ftitle">Hoja de Salida</div>
+      <div class="frow">
+        <div class="fg"><label>Repartidor</label><select id="f-rep"><option value="">Seleccioná...</option></select></div>
+        <div class="fg"><label>Camión / Vehículo</label><select id="f-camion"><option value="">Seleccioná...</option></select></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Fecha de Salida</label><input type="date" id="f-fecha"></div>
+      </div>
+      <div class="sec-div" style="color:var(--accent)">📄 Facturas del Día</div>
+      <div id="clientes-form"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addItem('f')" style="width:100%;padding:9px;font-family:'DM Sans';font-weight:600;font-size:13px;margin-bottom:14px">+ Agregar cliente con factura</button>
+      <div class="sec-div" style="color:var(--blue)">💰 Créditos Pendientes a Cobrar</div>
+      <div id="creditos-form"></div>
+      <button class="btn btn-blue btn-sm" onclick="addItem('c')" style="width:100%;padding:9px;font-family:'DM Sans';font-weight:600;font-size:13px">+ Agregar crédito pendiente</button>
+      <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="crearViaje()">REGISTRAR SALIDA</button>
+    </div>
+  </div>
+
+  <div id="tab-viajes" style="display:none">
+    <div class="frow" style="margin-bottom:14px">
+      <select id="fil-rep" onchange="renderViajes()" style="flex:1;font-size:13px;padding:8px 10px"><option value="">Todos los repartidores</option></select>
+      <select id="fil-est" onchange="renderViajes()" style="flex:1;font-size:13px;padding:8px 10px">
+        <option value="">Todos</option><option value="salida">En ruta</option><option value="liquidado">Liquidados</option>
+      </select>
+    </div>
+    <div id="viajes-list"><div class="empty"><div class="empty-icon">📦</div>Sin registros aún</div></div>
+  </div>
+
+  <div id="tab-descarga" style="display:none">
+    <div class="fbox">
+      <div class="ftitle">Descarga del Repartidor</div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px">Seleccioná tu viaje y completá qué vuelve y por qué en cada cliente.</p>
+      <div id="descarga-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-config" style="display:none">
+    <div class="fbox">
+      <div class="ftitle">Repartidores</div>
+      <div class="frow">
+        <div class="fg"><input type="text" id="new-rep" placeholder="Nombre del repartidor"></div>
+        <button class="btn btn-primary btn-sm" onclick="addRep()" style="align-self:flex-end;padding:9px 14px">AGREGAR</button>
+      </div>
+      <div class="chips" id="chips-rep"></div>
+    </div>
+    <div class="fbox">
+      <div class="ftitle">Camiones / Vehículos</div>
+      <div class="frow">
+        <div class="fg"><input type="text" id="new-camion" placeholder="Ej: Camión Blanco / JKL 1234"></div>
+        <button class="btn btn-primary btn-sm" onclick="addCamion()" style="align-self:flex-end;padding:9px 14px">AGREGAR</button>
+      </div>
+      <div class="chips" id="chips-camion"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title">Liquidación al Regreso <span class="modal-close" onclick="cerrarModal()">✕</span></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCuPihJs3G0kno_8zqtbAd0SaS-fkCu9wQ",
+  authDomain: "reparto-punta-3.firebaseapp.com",
+  projectId: "reparto-punta-3",
+  storageBucket: "reparto-punta-3.firebasestorage.app",
+  messagingSenderId: "96437542968",
+  appId: "1:96437542968:web:61fcf7c330aacd812b46cd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let viajes=[],reps=[],camiones=[],factTemp=[],credTemp=[],modalId=null;
+
+document.getElementById('hdate').textContent=new Date().toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
+
+function setSS(ok,msg){const el=document.getElementById('sync-status');el.textContent='● '+msg;el.className='sync-indicator '+(ok?'ok':'err');}
+
+const configRef=doc(db,'config','general');
+onSnapshot(configRef,snap=>{if(snap.exists()){const d=snap.data();reps=d.reps||[];camiones=d.camiones||[];}refreshSelects();renderChips();setSS(true,'Sincronizado ✓');},()=>setSS(false,'Sin conexión'));
+
+const viajesRef=collection(db,'viajes');
+onSnapshot(query(viajesRef,orderBy('creadoEn','desc')),snap=>{viajes=snap.docs.map(d=>({...d.data(),_id:d.id}));renderDashboard();renderViajes();renderDescarga();setSS(true,'Sincronizado ✓');},()=>setSS(false,'Sin conexión'));
+
+async function saveConfig(){await setDoc(configRef,{reps,camiones});}
+
+window.addRep=async function(){const v=document.getElementById('new-rep').value.trim();if(v&&!reps.includes(v)){reps.push(v);await saveConfig();}document.getElementById('new-rep').value='';}
+window.addCamion=async function(){const v=document.getElementById('new-camion').value.trim();if(v&&!camiones.includes(v)){camiones.push(v);await saveConfig();}document.getElementById('new-camion').value='';}
+window.removeRep=async function(v){reps=reps.filter(x=>x!==v);await saveConfig();}
+window.removeCamion=async function(v){camiones=camiones.filter(x=>x!==v);await saveConfig();}
+
+function renderChips(){
+  document.getElementById('chips-rep').innerHTML=reps.map(v=>`<span class="chip">${v}<span class="chip-x" onclick="removeRep('${v}')">×</span></span>`).join('');
+  document.getElementById('chips-camion').innerHTML=camiones.map(v=>`<span class="chip">${v}<span class="chip-x" onclick="removeCamion('${v}')">×</span></span>`).join('');
+}
+function refreshSelects(){
+  ['f-rep','fil-rep'].forEach(id=>{const s=document.getElementById(id);const cv=s.value;s.innerHTML=id.startsWith('fil')?'<option value="">Todos los repartidores</option>':'<option value="">Seleccioná...</option>';reps.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});s.value=cv;});
+  const sc=document.getElementById('f-camion');const cc=sc.value;sc.innerHTML='<option value="">Seleccioná...</option>';camiones.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sc.appendChild(o);});sc.value=cc;
+}
+
+window.addItem=function(t){
+  if(t==='f'){factTemp.push({id:Date.now(),nombre:'',monto:''});renderFact();}
+  else{credTemp.push({id:Date.now(),nombre:'',monto:''});renderCred();}
+}
+window.removeItem=function(id,t){
+  if(t==='f'){factTemp=factTemp.filter(c=>c.id!==id);renderFact();}
+  else{credTemp=credTemp.filter(c=>c.id!==id);renderCred();}
+}
+window.updateItem=function(id,f,v,t){
+  const arr=t==='f'?factTemp:credTemp;
+  const c=arr.find(x=>x.id===id);if(c)c[f]=v;
+}
+
+function itemFormHTML(c,t){
+  const isF=t==='f';
+  const color=isF?'var(--accent)':'var(--blue)';
+  const label=isF?'Monto Factura ($)':'Deuda Pendiente ($)';
+  return `<div class="cli-item" style="border-color:${color}33">
+    <div class="cli-header">
+      <span style="font-size:11px;color:var(--muted);font-weight:600">${isF?'FACTURA':'CRÉDITO'}</span>
+      <button class="btn btn-red btn-sm" onclick="removeItem(${c.id},'${t}')">✕ Quitar</button>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Nombre del cliente</label><input type="text" placeholder="Nombre" value="${c.nombre}" oninput="updateItem(${c.id},'nombre',this.value,'${t}')"></div>
+      <div class="fg"><label>${label}</label><input type="number" placeholder="0" value="${c.monto}" oninput="updateItem(${c.id},'monto',this.value,'${t}')"></div>
+    </div>
+  </div>`;
+}
+
+function renderFact(){
+  const el=document.getElementById('clientes-form');
+  el.innerHTML=factTemp.length?factTemp.map(c=>itemFormHTML(c,'f')).join(''):'<div style="color:var(--muted);font-size:12px;padding:4px 0 8px">Sin facturas.</div>';
+}
+function renderCred(){
+  const el=document.getElementById('creditos-form');
+  el.innerHTML=credTemp.length?credTemp.map(c=>itemFormHTML(c,'c')).join(''):'<div style="color:var(--muted);font-size:12px;padding:4px 0 8px">Sin créditos.</div>';
+}
+
+// FIX 1: crearViaje is clean — no nested function definitions inside it
+window.crearViaje=async function(){
+  const rep=document.getElementById('f-rep').value;
+  const camion=document.getElementById('f-camion').value;
+  const fecha=document.getElementById('f-fecha').value;
+  if(!rep||!camion){alert('Seleccioná repartidor y camión.');return;}
+  const clientes=factTemp.filter(c=>c.nombre.trim()).map(c=>({id:c.id,nombre:c.nombre.trim(),montoFactura:parseFloat(c.monto)||0,cobrado:0,devolucion:0,notaDescarga:''}));
+  const creditos=credTemp.filter(c=>c.nombre.trim()).map(c=>({id:c.id,nombre:c.nombre.trim(),deuda:parseFloat(c.monto)||0,cobrado:0}));
+  await addDoc(viajesRef,{rep,camion,fecha,clientes,creditos,combustible:0,estado:'salida',creadoEn:Date.now()});
+  document.getElementById('f-rep').value='';
+  document.getElementById('f-camion').value='';
+  factTemp=[];credTemp=[];renderFact();renderCred();
+  showTab('viajes');
+}
+
+function renderViajes(){
+  const filR=document.getElementById('fil-rep').value;
+  const filE=document.getElementById('fil-est').value;
+  const lista=viajes.filter(v=>(!filR||v.rep===filR)&&(!filE||v.estado===filE));
+  document.getElementById('viajes-list').innerHTML=lista.length?lista.map(vCard).join(''):'<div class="empty"><div class="empty-icon">📦</div>Sin registros aún</div>';
+}
+
+function vCard(v){
+  const creds=v.creditos||[];
+  const totFact=v.clientes.reduce((s,c)=>s+c.montoFactura,0);
+  const totCob=v.clientes.reduce((s,c)=>s+c.cobrado,0);
+  const totDev=v.clientes.reduce((s,c)=>s+c.devolucion,0);
+  const totCredSal=creds.reduce((s,c)=>s+c.deuda,0);
+  const totCredCob=creds.reduce((s,c)=>s+c.cobrado,0);
+  const rinde=totCob+totCredCob-totDev-(v.combustible||0);
+  const bar=v.estado==='liquidado'?'var(--green)':'var(--accent)';
+  const badge=v.estado==='liquidado'?'<span class="viaje-badge badge-liq">✔ Liquidado</span>':'<span class="viaje-badge badge-ruta">🚚 En ruta</span>';
+
+  const factHTML=v.clientes.length?v.clientes.map(c=>`
+    <div class="cr-row">
+      <div class="cr-dot" style="background:${c.cobrado>0?'var(--green)':'var(--red)'}"></div>
+      <div class="cr-info"><div class="cr-nombre">${c.nombre}</div>
+        <div class="cr-sub">Factura: ${fmt(c.montoFactura)}${v.estado==='liquidado'?' · Cobrado: '+fmt(c.cobrado):''}${c.devolucion?' · Dev: '+fmt(c.devolucion):''}</div>
+        ${c.notaDescarga?'<div class="cr-nota">📦 '+c.notaDescarga+'</div>':''}
+      </div>
+      <div class="cr-monto" style="color:${c.cobrado>0?'var(--green)':'var(--muted)'}">${fmt(v.estado==='liquidado'?c.cobrado:c.montoFactura)}</div>
+    </div>`).join(''):'<div style="color:var(--muted);font-size:12px">Sin facturas</div>';
+
+  const credHTML=creds.length?creds.map(c=>`
+    <div class="cr-row">
+      <div class="cr-dot" style="background:${c.cobrado>0?'var(--green)':'var(--blue)'}"></div>
+      <div class="cr-info"><div class="cr-nombre">${c.nombre}</div>
+        <div class="cr-sub">Deuda: ${fmt(c.deuda)}${v.estado==='liquidado'?' · Recuperado: '+fmt(c.cobrado):''}</div>
+      </div>
+      <div class="cr-monto" style="color:${c.cobrado>0?'var(--green)':'var(--blue)'}">${fmt(v.estado==='liquidado'?c.cobrado:c.deuda)}</div>
+    </div>`).join(''):'<div style="color:var(--muted);font-size:12px">Sin créditos</div>';
+
+  const liqHTML=v.estado==='liquidado'?`
+    <div class="vsec">
+      <div class="vsec-title">Resultado de Liquidación</div>
+      <div class="liq-resultado">
+        <div class="liq-row"><span class="liq-label">Facturas cobradas</span><span class="liq-val" style="color:var(--green)">${fmt(totCob)}</span></div>
+        <div class="liq-row"><span class="liq-label">Créditos recuperados</span><span class="liq-val" style="color:var(--blue)">${fmt(totCredCob)}</span></div>
+        <div class="liq-row"><span class="liq-label">Devoluciones</span><span class="liq-val" style="color:var(--red)">- ${fmt(totDev)}</span></div>
+        <div class="liq-row"><span class="liq-label">Combustible</span><span class="liq-val" style="color:var(--red)">- ${fmt(v.combustible||0)}</span></div>
+        <div class="liq-row total"><span class="liq-label">RINDE</span><span class="liq-val" style="color:var(--accent)">${fmt(rinde)}</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="abrirLiq('${v._id}')" style="width:100%;padding:9px;font-family:'DM Sans';font-weight:600;font-size:13px;margin-top:12px">✏️ Editar liquidación</button>
+    </div>`:`<div class="vsec" style="text-align:center">
+      <button class="btn btn-primary" style="padding:10px 24px;font-size:15px" onclick="abrirLiq('${v._id}')">LIQUIDAR AL REGRESO</button>
+    </div>`;
+
+  return `<div class="viaje-card">
+    <div class="viaje-header" onclick="toggleViaje('${v._id}')">
+      <div class="viaje-bar" style="background:${bar}"></div>
+      <div class="viaje-info">
+        <div class="viaje-nombre">${v.rep} ${badge}</div>
+        <div class="viaje-meta">${v.camion} · ${v.fecha} · ${v.clientes.length} cliente${v.clientes.length!==1?'s':''} visitado${v.clientes.length!==1?'s':''} · ${creds.length} créd.</div>
+      </div>
+      <div class="viaje-monto" style="color:${v.estado==='liquidado'?'var(--green)':'var(--accent)'}">${fmt(v.estado==='liquidado'?rinde:totFact+totCredSal)}</div>
+    </div>
+    <div class="viaje-body" id="vb-${v._id}">
+      <div class="vsec"><div class="vsec-title">📄 Facturas — ${fmt(totFact)}</div>${factHTML}</div>
+      <div class="vsec"><div class="vsec-title">💰 Créditos a cobrar — ${fmt(totCredSal)}</div>${credHTML}</div>
+      ${liqHTML}
+    </div>
+  </div>`;
+}
+
+window.toggleViaje=function(id){const el=document.getElementById('vb-'+id);if(el)el.classList.toggle('open');}
+
+window.abrirLiq=function(id){
+  const v=viajes.find(x=>x._id===id);if(!v)return;
+  modalId=id;
+  const creds=v.creditos||[];
+  let html=`<div style="font-size:13px;color:var(--muted);margin-bottom:14px"><b style="color:var(--text)">${v.rep}</b> · ${v.camion} · ${v.fecha}</div>`;
+  if(v.clientes.length){
+    html+=`<div class="sec-div" style="color:var(--accent)">📄 Cobros de Facturas</div>`;
+    v.clientes.forEach((c,i)=>{
+      html+=`<div class="cli-item" style="margin-bottom:10px">
+        <div class="cli-header"><span style="font-weight:600;font-size:14px">${c.nombre}</span><span style="font-size:11px;color:var(--muted)">Factura: ${fmt(c.montoFactura)}</span></div>
+        <div class="frow">
+          <div class="fg"><label>Cobrado ($)</label><input type="number" id="lq-cob-${i}" placeholder="0" value="${c.cobrado||''}"></div>
+          <div class="fg"><label>Devolución ($)</label><input type="number" id="lq-dev-${i}" placeholder="0" value="${c.devolucion||''}"></div>
+        </div>
+        <div class="fg" style="margin-top:8px"><label>Detalle descarga — qué vuelve y por qué</label>
+          <textarea id="lq-nota-${i}" placeholder="Ej: 2 cajas vuelven, cliente no estaba...">${c.notaDescarga||''}</textarea>
+        </div>
+      </div>`;
+    });
+  }
+  if(creds.length){
+    html+=`<div class="sec-div" style="color:var(--blue)">💰 Créditos Pendientes</div>`;
+    creds.forEach((c,i)=>{
+      html+=`<div class="cli-item" style="margin-bottom:10px;border-color:#3498db44">
+        <div class="cli-header"><span style="font-weight:600;font-size:14px">${c.nombre}</span><span style="font-size:11px;color:var(--blue)">Deuda: ${fmt(c.deuda)}</span></div>
+        <div class="fg"><label>Cuánto cobró ($)</label><input type="number" id="lq-cred-${i}" placeholder="0" value="${c.cobrado||''}"></div>
+      </div>`;
+    });
+  }
+  html+=`<div class="sec-div" style="color:var(--muted)">🚗 Cierre</div>
+    <div class="fg"><label>Combustible ($)</label><input type="number" id="lq-comb" placeholder="0" value="${v.combustible||''}"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="guardarLiq()">GUARDAR LIQUIDACIÓN</button>`;
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal').classList.add('open');
+}
+
+window.guardarLiq=async function(){
+  const v=viajes.find(x=>x._id===modalId);if(!v)return;
+  const creds=v.creditos||[];
+  const clientes=v.clientes.map((c,i)=>{
+    const cEl=document.getElementById('lq-cob-'+i);
+    const dEl=document.getElementById('lq-dev-'+i);
+    const nEl=document.getElementById('lq-nota-'+i);
+    return {...c,
+      cobrado: cEl ? (parseFloat(cEl.value)||0) : c.cobrado,
+      devolucion: dEl ? (parseFloat(dEl.value)||0) : c.devolucion,
+      notaDescarga: nEl ? nEl.value.trim() : c.notaDescarga
+    };
+  });
+  const creditos=creds.map((c,i)=>{
+    const el=document.getElementById('lq-cred-'+i);
+    return {...c, cobrado: el ? (parseFloat(el.value)||0) : c.cobrado};
+  });
+  const cEl=document.getElementById('lq-comb');
+  const combustible=cEl ? (parseFloat(cEl.value)||0) : (v.combustible||0);
+  await updateDoc(doc(db,'viajes',modalId),{clientes,creditos,combustible,estado:'liquidado'});
+  cerrarModal();
+}
+
+window.cerrarModal=function(){document.getElementById('modal').classList.remove('open');modalId=null;}
+
+function renderDashboard(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const hV=viajes.filter(v=>v.fecha===hoy);
+  const cardsEl=document.getElementById('dash-cards');
+  if(!hV.length){
+    cardsEl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0 16px">Sin viajes hoy.</div>';
+  } else {
+    const porRep={};
+    hV.forEach(v=>{
+      if(!porRep[v.rep])porRep[v.rep]={rep:v.rep,camion:v.camion,factCob:0,credCob:0,dev:0,comb:0,rinde:0,clientes:0,estado:v.estado};
+      const p=porRep[v.rep];
+      p.clientes+=v.clientes.length;
+      p.factCob+=v.clientes.reduce((s,c)=>s+c.cobrado,0);
+      p.credCob+=(v.creditos||[]).reduce((s,c)=>s+c.cobrado,0);
+      p.dev+=v.clientes.reduce((s,c)=>s+c.devolucion,0);
+      p.comb+=v.combustible||0;
+      p.rinde+=v.clientes.reduce((s,c)=>s+c.cobrado-c.devolucion,0)+(v.creditos||[]).reduce((s,c)=>s+c.cobrado,0)-(v.combustible||0);
+      if(v.estado==='salida')p.estado='salida';
+    });
+    cardsEl.innerHTML=Object.values(porRep).map(p=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <span style="font-family:'Bebas Neue';font-size:26px;letter-spacing:2px;color:var(--accent)">${p.rep}</span>
+            <span style="font-size:14px;color:var(--text);font-weight:600;margin-left:8px">${p.camion}</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">👥 <b style="color:var(--text)">${p.clientes}</b> cliente${p.clientes!==1?'s':''} visitado${p.clientes!==1?'s':''}
+          </div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:20px;${p.estado==='liquidado'?'background:rgba(39,174,96,.15);color:var(--green)':'background:rgba(245,200,66,.15);color:var(--accent)'}">${p.estado==='liquidado'?'✔ Liquidado':'🚚 En ruta'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+          <div style="background:var(--bg);border-radius:8px;padding:8px 10px;">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text);font-weight:700;margin-bottom:4px">Facturas cobradas</div>
+            <div style="font-family:'Bebas Neue';font-size:26px;color:var(--green)">${fmt(p.factCob)}</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:8px 10px;">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text);font-weight:700;margin-bottom:4px">Créditos recuperados</div>
+            <div style="font-family:'Bebas Neue';font-size:26px;color:var(--blue)">${fmt(p.credCob)}</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:8px 10px;">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text);font-weight:700;margin-bottom:4px">Devoluciones</div>
+            <div style="font-family:'Bebas Neue';font-size:26px;color:var(--red)">${fmt(p.dev)}</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:8px 10px;">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text);font-weight:700;margin-bottom:4px">Combustible</div>
+            <div style="font-family:'Bebas Neue';font-size:26px;color:var(--red)">${fmt(p.comb)}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;background:var(--bg);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--text);font-weight:800">RINDE</span>
+          <span style="font-family:'Bebas Neue';font-size:32px;color:var(--accent)">${fmt(p.rinde)}</span>
+        </div>
+      </div>`).join('');
+  }
+  const el=document.getElementById('dash-list');
+  const rec=viajes.slice(0,5);
+  el.innerHTML=rec.length?rec.map(v=>{
+    const tot=v.clientes.reduce((s,c)=>s+c.montoFactura,0)+(v.creditos||[]).reduce((s,c)=>s+c.deuda,0);
+    const rinde=v.clientes.reduce((s,c)=>s+c.cobrado-c.devolucion,0)+(v.creditos||[]).reduce((s,c)=>s+c.cobrado,0)-(v.combustible||0);
+    return `<div class="viaje-card"><div class="viaje-header" onclick="showTab('viajes')">
+      <div class="viaje-bar" style="background:${v.estado==='liquidado'?'var(--green)':'var(--accent)'}"></div>
+      <div class="viaje-info"><div class="viaje-nombre">${v.rep} ${v.estado==='liquidado'?'<span class="viaje-badge badge-liq">✔ Liq.</span>':'<span class="viaje-badge badge-ruta">🚚 Ruta</span>'}</div>
+      <div class="viaje-meta">${v.camion} · ${v.fecha}</div></div>
+      <div class="viaje-monto" style="color:${v.estado==='liquidado'?'var(--green)':'var(--accent)'}">${fmt(v.estado==='liquidado'?rinde:tot)}</div>
+    </div></div>`;
+  }).join(''):'<div class="empty"><div class="empty-icon">📦</div>Sin registros aún</div>';
+}
+
+// FIX 2: showTab is clean — no unclosed block, properly calls renderDescarga
+window.showTab=function(t){
+  ['dashboard','nuevo','viajes','descarga','config'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['dashboard','nuevo','viajes','descarga','config'][i]===t));
+  if(t==='nuevo'){factTemp=[];credTemp=[];renderFact();renderCred();}
+  if(t==='descarga'){renderDescarga();}
+}
+
+function fmt(n){return '$'+(n||0).toLocaleString('es-UY',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+// FIX 3: renderDescarga and guardarDescarga defined once at top level (not inside other functions)
+function renderDescarga(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const enRuta=viajes.filter(v=>v.fecha===hoy&&v.estado==='salida');
+  const el=document.getElementById('descarga-list');
+  if(!el)return;
+  if(!enRuta.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">✅</div>No hay viajes en ruta hoy</div>';
+    return;
+  }
+  el.innerHTML=enRuta.map(v=>`
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:4px">${v.rep}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${v.camion} · ${v.fecha}</div>
+      ${v.clientes.map((c,i)=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;margin-bottom:4px">${c.nombre}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Factura: ${fmt(c.montoFactura)}</div>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:4px;display:block">¿Qué vuelve y por qué?</label>
+          <textarea id="desc-${v._id}-${i}" placeholder="Ej: 2 cajas vuelven, cliente no estaba..." style="width:100%;font-size:14px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:'DM Sans';resize:vertical;min-height:70px;">${c.notaDescarga||''}</textarea>
+        </div>`).join('')}
+      <button onclick="guardarDescarga('${v._id}')" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;cursor:pointer;margin-top:4px">GUARDAR DESCARGA</button>
+    </div>`).join('');
+}
+
+window.guardarDescarga=async function(vid){
+  const v=viajes.find(x=>x._id===vid);if(!v)return;
+  const clientes=v.clientes.map((c,i)=>{
+    const el=document.getElementById('desc-'+vid+'-'+i);
+    return {...c, notaDescarga: el ? el.value.trim() : c.notaDescarga};
+  });
+  await updateDoc(doc(db,'viajes',vid),{clientes});
+  alert('✅ Descarga guardada correctamente');
+}
+
+renderFact();renderCred();
+</script>
+</body>
+</html>
