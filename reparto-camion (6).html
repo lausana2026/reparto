@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>REPARTO</title>
+  <!-- PWA: instalable en pantalla de inicio -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="REPARTO" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#d97706" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23d97706'/><text y='.9em' font-size='72' x='12'>🚛</text></svg>" />
+  <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;REPARTO&quot;,&quot;short_name&quot;:&quot;REPARTO&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23f1f5f9&quot;,&quot;theme_color&quot;:&quot;%23d97706&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23d97706'/><text y='.9em' font-size='72' x='12'>🚛</text></svg>&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background: #f1f5f9; font-family: 'Syne', sans-serif; max-width: 420px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+    #header { background: #fff; border-bottom: 3px solid #d97706; padding: 16px 20px 0; }
+    #header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    #logo { font-size: 26px; font-weight: 800; letter-spacing: 0.12em; background: linear-gradient(90deg, #d97706 0%, #92400e 60%, #1e293b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    #status { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 13px; color: #94a3b8; }
+    #status-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; display: inline-block; transition: all 0.3s; }
+    #status-dot.connected { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    #tabs { display: flex; }
+    .tab-btn { flex: 1; background: none; border: none; cursor: pointer; padding: 10px 2px 12px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; color: #94a3b8; border-bottom: 2.5px solid transparent; transition: all 0.2s; }
+    .tab-btn.active { color: #d97706; border-bottom-color: #d97706; }
+    #content { flex: 1; padding: 20px 16px 100px; display: flex; flex-direction: column; }
+    .section-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; color: #64748b; margin-bottom: 16px; }
+    .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 16px; padding: 60px 24px; opacity: 0.7; }
+    .empty-icon { font-size: 64px; }
+    .empty-text { font-family: 'DM Mono', monospace; font-size: 13px; color: #64748b; }
+    .trip-card { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border-left: 4px solid #d97706; }
+    .desc-card  { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border-left: 4px solid #6366f1; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .card-id { font-weight: 700; font-size: 13px; color: #94a3b8; font-family: 'DM Mono', monospace; }
+    .card-actions { display: flex; align-items: center; gap: 8px; }
+    .trip-status { font-size: 11px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 20px; background: #fef3c7; color: #92400e; }
+    .desc-badge  { font-size: 11px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 20px; background: #ede9fe; color: #5b21b6; }
+    .edit-btn { background: none; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 3px 9px; font-size: 13px; cursor: pointer; color: #64748b; }
+    .card-name    { font-weight: 700; font-size: 16px; color: #1e293b; margin-bottom: 4px; }
+    .card-vehicle { font-family: 'DM Mono', monospace; font-size: 12px; color: #475569; margin-bottom: 4px; }
+    .card-date    { font-family: 'DM Mono', monospace; font-size: 11px; color: #94a3b8; }
+    .card-cobrado { font-family: 'DM Mono', monospace; font-size: 13px; color: #16a34a; font-weight: 700; margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+    .total-cobrado-bar { background: linear-gradient(135deg, #16a34a, #15803d); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .total-cobrado-label { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 0.1em; }
+    .total-cobrado-num { font-size: 26px; font-weight: 800; color: #fff; }
+    .resumen-stat.green .resumen-stat-num { color: #4ade80; }
+    .card-motivo  { font-family: 'DM Mono', monospace; font-size: 12px; color: #475569; margin-bottom: 4px; line-height: 1.5; }
+    .card-repartidor { font-family: 'DM Mono', monospace; font-size: 12px; color: #d97706; font-weight: 500; margin-bottom: 6px; }
+    #fab { position: fixed; bottom: 28px; right: calc(50% - 210px + 24px); width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #d97706, #b45309); border: none; color: #fff; font-size: 28px; cursor: pointer; box-shadow: 0 4px 16px rgba(180,83,9,0.4); display: flex; align-items: center; justify-content: center; z-index: 50; transition: transform 0.15s; }
+    #fab:active { transform: scale(0.93); }
+    @media (max-width: 420px) { #fab { right: 24px; } }
+    #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+    #modal-overlay.open { display: flex; }
+    #modal { background: #fff; width: 100%; max-width: 420px; border-radius: 20px 20px 0 0; padding: 28px 24px 44px; display: flex; flex-direction: column; gap: 18px; max-height: 92vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-weight: 800; font-size: 18px; color: #1e293b; }
+    .modal-close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8; }
+    .field-label { font-family: 'DM Mono', monospace; font-size: 11px; color: #64748b; letter-spacing: 0.06em; display: block; margin-bottom: 8px; }
+    .field-input { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 13px; color: #1e293b; outline: none; background: #f8fafc; width: 100%; }
+    .field-input:focus { border-color: #d97706; }
+    .select-input { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 13px; color: #1e293b; outline: none; background: #f8fafc; width: 100%; }
+    .select-input:focus { border-color: #d97706; }
+    textarea.field-input { resize: none; height: 90px; line-height: 1.5; }
+    .motivo-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .motivo-chip { border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 6px 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: #64748b; cursor: pointer; background: #f8fafc; transition: all 0.15s; }
+    .motivo-chip.selected { border-color: #6366f1; background: #ede9fe; color: #5b21b6; }
+    .primary-btn { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; border: none; border-radius: 12px; padding: 14px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; width: 100%; }
+    .indigo-btn  { background: linear-gradient(135deg, #6366f1, #4338ca); color: #fff; border: none; border-radius: 12px; padding: 14px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; width: 100%; }
+    .config-field { margin-bottom: 14px; }
+    .config-field-label { font-family: 'DM Mono', monospace; font-size: 11px; color: #64748b; letter-spacing: 0.08em; display: block; margin-bottom: 8px; }
+    .config-input { border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 13px 16px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; color: #1e293b; outline: none; background: #fff; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .config-input:focus { border-color: #d97706; }
+    .config-save-btn { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; border: none; border-radius: 12px; padding: 13px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; margin-top: 6px; }
+    .config-saved { display: none; text-align: center; font-family: 'DM Mono', monospace; font-size: 12px; color: #16a34a; margin-top: 8px; }
+    .config-info-row { background: #fff; border-radius: 12px; padding: 13px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 10px; }
+    .config-info-label { font-family: 'DM Mono', monospace; font-size: 12px; color: #94a3b8; }
+    .config-info-value  { font-family: 'DM Mono', monospace; font-size: 12px; color: #475569; }
+    .config-divider { font-family: 'DM Mono', monospace; font-size: 10px; color: #cbd5e1; letter-spacing: 0.1em; margin: 18px 0 14px; }
+    .resumen-hero { background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 20px; margin-bottom: 16px; color: #fff; }
+    .resumen-hero-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; color: #94a3b8; margin-bottom: 10px; }
+    .resumen-hero-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .resumen-hero-vehicle { font-family: 'DM Mono', monospace; font-size: 13px; color: #cbd5e1; margin-bottom: 14px; }
+    .resumen-stats { display: flex; gap: 12px; }
+    .resumen-stat { flex: 1; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; text-align: center; }
+    .resumen-stat-num { font-size: 28px; font-weight: 800; }
+    .resumen-stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: #94a3b8; letter-spacing: 0.08em; margin-top: 2px; }
+    .resumen-stat.amber .resumen-stat-num { color: #fbbf24; }
+    .resumen-stat.indigo .resumen-stat-num { color: #a5b4fc; }
+    .resumen-section-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #64748b; margin: 16px 0 10px; }
+    .resumen-row { background: #fff; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .resumen-row-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .resumen-row-cliente { font-weight: 700; font-size: 14px; color: #1e293b; }
+    .resumen-row-motivo { font-family: 'DM Mono', monospace; font-size: 11px; color: #6366f1; background: #ede9fe; padding: 2px 7px; border-radius: 10px; }
+    .resumen-row-detalle { font-family: 'DM Mono', monospace; font-size: 11px; color: #64748b; margin-top: 2px; }
+    .resumen-viaje-row { background: #fff; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .share-btn { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 13px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; color: #1e293b; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .saving-toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; padding: 8px 16px; border-radius: 20px; display: none; z-index: 200; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-top">
+    <div id="logo">REPARTO</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="gps-status" style="font-size:16px" title="GPS">📍</div>
+      <div id="status"><span id="status-dot"></span><span id="status-text">Conectando...</span></div>
+    </div>
+  </div>
+  <div id="tabs">
+    <button class="tab-btn active" onclick="setTab('viajes');openModal(null,'viaje')">VIAJES</button>
+    <button class="tab-btn" onclick="setTab('descarga');openModal(null,'descarga')">📦 DESCARGA</button>
+    <button class="tab-btn" onclick="setTab('resumen')">📋 RESUMEN</button>
+    <button class="tab-btn" onclick="setTab('config')">CONFIG</button>
+  </div>
+</div>
+
+<div id="saving-toast" class="saving-toast">💾 Guardando...</div>
+<div id="content"></div>
+<button id="fab" style="display:none" onclick="openModal(null)">+</button>
+
+<div id="modal-overlay" onclick="overlayClick(event)">
+  <div id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title-text"></span>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, addDoc, updateDoc, setDoc, doc, onSnapshot, query, orderBy, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCuPihJs3G0kno_8zqtbAd0SaS-fkCu9wQ",
+    authDomain: "reparto-punta-3.firebaseapp.com",
+    projectId: "reparto-punta-3",
+    storageBucket: "reparto-punta-3.firebasestorage.app",
+    messagingSenderId: "96437542968",
+    appId: "1:96437542968:web:61cf7c3330aacd812b46cd"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db;
+  window.trips = [];
+
+  // GPS — ubicación en tiempo real cada 30 segundos
+  function enviarUbicacion() {
+    if (!window.config || !window.config.repartidor) return;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const gpsEl = document.getElementById('gps-status');
+      if (gpsEl) gpsEl.title = `GPS: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+      try {
+        await setDoc(doc(db, 'ubicaciones', window.config.repartidor), {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          repartidor: window.config.repartidor,
+          vehiculo: window.config.vehiculo || '',
+          timestamp: Date.now()
+        });
+      } catch(e) { console.log('GPS error', e); }
+    }, null, { enableHighAccuracy: true });
+  }
+  window.iniciarGPS = function() {
+    enviarUbicacion();
+    setInterval(enviarUbicacion, 30000);
+  };
+  window.descargas = [];
+  window.repsDisponibles = [];
+  window.camionesDisponibles = [];
+
+  // Cargar repartidores y camiones desde config de Firebase
+  try {
+    const configDoc = await getDoc(doc(db, 'config', 'general'));
+    if (configDoc.exists()) {
+      const data = configDoc.data();
+      window.repsDisponibles = data.repartidores || [];
+      window.camionesDisponibles = data.camiones || [];
+    }
+  } catch(e) { console.log('config no disponible'); }
+
+  // Escuchar viajes en tiempo real — misma colección que la app del depósito
+  const q = query(collection(db, 'viajes'), orderBy('creadoEn', 'desc'));
+  onSnapshot(q, (snap) => {
+    window.trips = snap.docs.map(d => ({ firebaseId: d.id, ...d.data() }));
+    if (window.currentTab === 'viajes' || window.currentTab === 'resumen') renderContent();
+    document.getElementById('status-dot').classList.add('connected');
+    document.getElementById('status-text').textContent = 'Conectado';
+  }, () => {
+    document.getElementById('status-dot').classList.remove('connected');
+    document.getElementById('status-text').textContent = 'Sin conexión';
+  });
+
+  // Escuchar devoluciones
+  const qDev = query(collection(db, 'devoluciones'), orderBy('timestamp', 'desc'));
+  onSnapshot(qDev, (snap) => {
+    window.descargas = snap.docs.map(d => ({ firebaseId: d.id, ...d.data() }));
+    if (window.currentTab === 'descarga' || window.currentTab === 'resumen') renderContent();
+  }, () => {});
+
+  // Guardar viaje — mismo formato que la app del depósito
+  window.saveTrip = async function() {
+    const rep    = window.config.repartidor;
+    const camion = window.config.vehiculo;
+    const fecha  = document.getElementById('input-fecha').value;
+    const cobradoManual = Number(document.getElementById('input-cobrado').value) || 0;
+    const clienteNombre = document.getElementById('input-cliente-viaje').value.trim();
+    const detalleViaje  = document.getElementById('input-detalle-viaje').value.trim();
+    if (!rep || !camion) { alert('Configurá tu nombre y vehículo en CONFIG'); return; }
+    showToast();
+    // Capturar ubicación del momento de entrega
+    let ubicacionEntrega = null;
+    try {
+      ubicacionEntrega = await new Promise((res) => {
+        if (!navigator.geolocation) return res(null);
+        navigator.geolocation.getCurrentPosition(
+          p => res({ lat: p.coords.latitude, lng: p.coords.longitude }),
+          () => res(null),
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      });
+    } catch(e) {}
+    try {
+      // Comprimir foto y guardar como base64 en Firestore (sin Storage)
+      let fotoURL = (window.editingId ? ((window.trips||[]).find(t=>t.firebaseId===window.editingId)||{}).fotoURL : '') || '';
+      const fotoFile = document.getElementById('input-foto-viaje') && document.getElementById('input-foto-viaje').files[0];
+      if (fotoFile) {
+        fotoURL = await new Promise((res) => {
+          const img = new Image();
+          const reader = new FileReader();
+          reader.onload = e => {
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX = 800;
+              let w = img.width, h = img.height;
+              if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+              if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              res(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(fotoFile);
+        });
+      }
+      if (window.editingId) {
+        const upd = { rep, camion, fecha, cobradoManual, clienteNombre, detalleViaje, fotoURL };
+        if (ubicacionEntrega) upd.ubicacion = ubicacionEntrega;
+        await updateDoc(doc(db, 'viajes', window.editingId), upd);
+      } else {
+        await addDoc(collection(db, 'viajes'), {
+          rep, camion, fecha, cobradoManual, clienteNombre, detalleViaje, fotoURL,
+          ubicacion: ubicacionEntrega,
+          clientes: [], creditosSalida: [], creditosCobrados: 0,
+          combustible: 0, cobrado: 0, devolucion: 0,
+          notaDescarga: '', estado: 'salida', creadoEn: Date.now()
+        });
+      }
+    } catch(e) { alert('Error al guardar: ' + e.message); }
+    closeModal();
+  };
+
+  // Guardar devolución
+  window.saveDescarga = async function() {
+    const cliente   = document.getElementById('input-cliente').value.trim();
+    const detalle   = document.getElementById('input-detalle').value.trim();
+    const camionero = document.getElementById('input-desc-rep').value.trim();
+    const fecha     = document.getElementById('input-desc-fecha').value;
+    const chip      = document.querySelector('.motivo-chip.selected');
+    const motivo    = chip ? chip.textContent : '';
+    if (!cliente) { document.getElementById('input-cliente').focus(); return; }
+    if (!motivo)  { alert('Seleccioná un motivo'); return; }
+    showToast();
+    try {
+      if (window.editingId) {
+        await updateDoc(doc(db, 'devoluciones', window.editingId), { cliente, motivo, detalle, camionero, fecha });
+      } else {
+        await addDoc(collection(db, 'devoluciones'), {
+          id: String(Date.now()).slice(-5), cliente, motivo, detalle, camionero, fecha,
+          timestamp: Date.now()
+        });
+      }
+    } catch(e) { alert('Error: ' + e.message); }
+    closeModal();
+  };
+
+  function showToast() {
+    const t = document.getElementById('saving-toast');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2000);
+  }
+</script>
+
+<script>
+  window.currentTab = 'viajes';
+  window.editingId = null;
+  window.modalMode = 'viaje';
+  window.config = {
+    repartidor: localStorage.getItem('cfg_repartidor') || '',
+    vehiculo:   localStorage.getItem('cfg_vehiculo')   || ''
+  };
+
+  // Si no tiene repartidor/vehiculo configurado, mostrar pantalla de setup
+  if (!window.config.repartidor || !window.config.vehiculo) {
+    document.getElementById('content').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 24px;gap:24px">
+        <div style="font-size:64px">&#x1F69B;</div>
+        <div style="font-size:22px;font-weight:800;color:#1e293b;text-align:center">&#x21A1; Bienvenido a REPARTO</div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;color:#64748b;text-align:center">Configura tu nombre y vehiculo una sola vez para empezar</div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label class="config-field-label">&#x1F464; TU NOMBRE</label>
+            <input id="setup-repartidor" class="config-input" type="text" placeholder="Ej: Ramon" />
+          </div>
+          <div>
+            <label class="config-field-label">&#x1F69B; TU VEHICULO</label>
+            <input id="setup-vehiculo" class="config-input" type="text" placeholder="Ej: Kia" />
+          </div>
+          <button class="config-save-btn" style="margin-top:8px" onclick="setupInicial()">EMPEZAR</button>
+        </div>
+      </div>`;
+    document.getElementById('fab').style.display = 'none';
+  }
+
+  function setupInicial() {
+    const rep = document.getElementById('setup-repartidor').value.trim();
+    const veh = document.getElementById('setup-vehiculo').value.trim();
+    if (!rep) { document.getElementById('setup-repartidor').focus(); return; }
+    if (!veh) { document.getElementById('setup-vehiculo').focus(); return; }
+    window.config.repartidor = rep;
+    window.config.vehiculo   = veh;
+    localStorage.setItem('cfg_repartidor', rep);
+    localStorage.setItem('cfg_vehiculo',   veh);
+    document.getElementById('fab').style.display = 'flex';
+    renderContent();
+    if (window.iniciarGPS) window.iniciarGPS();
+  }
+
+  const MOTIVOS = ['No estaba el cliente','Rechazó el pedido','Dirección incorrecta','Producto dañado','Otro'];
+
+  function todayStr() { return new Date().toISOString().split('T')[0]; }
+  function formatDate(d) {
+    if (!d) return '—';
+    const [y,m,day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  function setTab(tab) {
+    window.currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach((btn,i) => {
+      btn.classList.toggle('active', ['viajes','descarga','resumen','config'][i] === tab);
+    });
+    const fab = document.getElementById('fab');
+    if (tab === 'viajes') {
+      fab.style.display = 'flex';
+      fab.style.background = 'linear-gradient(135deg,#d97706,#b45309)';
+      fab.style.boxShadow = '0 4px 16px rgba(180,83,9,0.4)';
+    } else if (tab === 'descarga') {
+      fab.style.display = 'flex';
+      fab.style.background = 'linear-gradient(135deg,#6366f1,#4338ca)';
+      fab.style.boxShadow = '0 4px 16px rgba(99,102,241,0.4)';
+    } else {
+      fab.style.display = 'none';
+    }
+    renderContent();
+  }
+
+  function renderContent() {
+    const c = document.getElementById('content');
+    const trips = window.trips || [];
+    const descargas = window.descargas || [];
+
+    if (window.currentTab === 'viajes') {
+      const totalCobrado = trips.reduce((sum, t) => sum + (Number(t.cobradoManual)||0), 0);
+      const badge = trips.length > 0
+        ? `<span style="background:#d97706;color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-family:'DM Mono',monospace">${trips.length}</span>` : '';
+      const cards = trips.length === 0
+        ? `<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Sin registros aún</div></div>`
+        : trips.map(t => `
+          <div class="trip-card" onclick="openModal('${t.firebaseId}','viaje')" style="cursor:pointer;active:opacity:0.8">
+            <div class="card-top">
+              <span class="card-id">#${String(t.creadoEn||'').slice(-5)}</span>
+              <span class="trip-status">${(t.estado||'salida').toUpperCase()}</span>
+            </div>
+            <div class="card-name">🧑‍✈️ ${t.rep||'—'}</div>
+            <div class="card-vehicle">🚛 ${t.camion||'—'}</div>
+            ${t.clienteNombre ? `<div class="card-vehicle">🏪 ${t.clienteNombre}</div>` : ''}
+            <div class="card-date">📅 ${formatDate(t.fecha)}</div>
+            ${(t.cobradoManual||0) > 0 ? `<div class="card-cobrado">💵 $${Number(t.cobradoManual).toLocaleString('es-AR')}</div>` : ''}
+            ${t.detalleViaje ? `<div class="card-motivo" style="margin-top:6px">📝 ${t.detalleViaje}</div>` : ''}
+            ${t.fotoURL ? `<img src="${t.fotoURL}" style="width:100%;border-radius:8px;margin-top:10px;object-fit:cover;max-height:160px" onclick="event.stopPropagation();window.open('${t.fotoURL}','_blank')" />` : ''}
+            ${t.ubicacion ? `<a href="https://www.google.com/maps?q=${t.ubicacion.lat},${t.ubicacion.lng}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;color:#2563eb;text-decoration:none">📍 Ver ubicación de entrega</a>` : ''}
+          </div>`).join('');
+      c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span class="section-title" style="margin-bottom:0">VIAJES RECIENTES</span>${badge}</div>
+        ${totalCobrado > 0 ? `<div class="total-cobrado-bar"><span class="total-cobrado-label">💵 TOTAL COBRADO</span><span class="total-cobrado-num">$${totalCobrado.toLocaleString('es-AR')}</span></div>` : ''}
+        ${cards}`;
+
+    } else if (window.currentTab === 'descarga') {
+      const badge = descargas.length > 0
+        ? `<span style="background:#6366f1;color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-family:'DM Mono',monospace">${descargas.length}</span>` : '';
+      const cards = descargas.length === 0
+        ? `<div class="empty"><div class="empty-icon">↩️</div><div class="empty-text">Sin devoluciones aún</div></div>`
+        : descargas.map(d => `
+          <div class="desc-card">
+            <div class="card-top">
+              <span class="card-id">#${d.id||'—'}</span>
+              <div class="card-actions">
+                <button class="edit-btn" onclick="openModal('${d.firebaseId}','descarga')">✏️</button>
+                <span class="desc-badge">DEVOLUCIÓN</span>
+              </div>
+            </div>
+            <div class="card-repartidor">🧑‍✈️ ${d.camionero||'—'}</div>
+            <div class="card-name">🏪 ${d.cliente}</div>
+            <div class="card-motivo">📋 ${d.motivo}${d.detalle?'<br><span style="color:#64748b;font-size:11px">'+d.detalle+'</span>':''}</div>
+            <div class="card-date">📅 ${formatDate(d.fecha)}</div>
+          </div>`).join('');
+      c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span class="section-title" style="margin-bottom:0">DEVOLUCIONES</span>${badge}</div>${cards}`;
+
+    } else if (window.currentTab === 'resumen') {
+      const hoy = todayStr();
+      const devHoy    = descargas.filter(d => d.fecha === hoy);
+      const viajesHoy = trips.filter(t => t.fecha === hoy);
+      const totalCobradoHoy = viajesHoy.reduce((sum, t) => sum + (Number(t.cobradoManual)||0), 0);
+      c.innerHTML = `
+        <div class="resumen-hero">
+          <div class="resumen-hero-title">RESUMEN · ${formatDate(hoy)}</div>
+          <div class="resumen-hero-name">🧑‍✈️ ${window.config.repartidor||'—'}</div>
+          <div class="resumen-hero-vehicle">🚛 ${window.config.vehiculo||'—'}</div>
+          <div class="resumen-stats">
+            <div class="resumen-stat amber"><div class="resumen-stat-num">${viajesHoy.length}</div><div class="resumen-stat-label">VIAJES</div></div>
+            <div class="resumen-stat indigo"><div class="resumen-stat-num">${devHoy.length}</div><div class="resumen-stat-label">DEVOLUCIONES</div></div>
+            <div class="resumen-stat green"><div class="resumen-stat-num" style="font-size:18px">$${totalCobradoHoy.toLocaleString('es-AR')}</div><div class="resumen-stat-label">COBRADO</div></div>
+          </div>
+        </div>
+        <div class="resumen-section-title">↩️ MERCADERÍA QUE VUELVE</div>
+        ${devHoy.length===0
+          ? `<div style="font-family:'DM Mono',monospace;font-size:12px;color:#94a3b8;text-align:center;padding:16px">Sin devoluciones hoy</div>`
+          : devHoy.map(d=>`<div class="resumen-row"><div class="resumen-row-top"><span class="resumen-row-cliente">🏪 ${d.cliente}</span><span class="resumen-row-motivo">${d.motivo}</span></div>${d.detalle?`<div class="resumen-row-detalle">${d.detalle}</div>`:''}</div>`).join('')}
+        <div class="resumen-section-title">✅ VIAJES DEL DÍA</div>
+        ${viajesHoy.length===0
+          ? `<div style="font-family:'DM Mono',monospace;font-size:12px;color:#94a3b8;text-align:center;padding:16px">Sin viajes hoy</div>`
+          : viajesHoy.map(t=>`<div class="resumen-viaje-row"><span style="font-weight:600;font-size:14px;color:#1e293b">🚛 ${t.camion||'—'} · 🧑‍✈️ ${t.rep||'—'}</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:#94a3b8">${t.estado||'salida'}</span></div>`).join('')}
+        <button class="share-btn" onclick="compartirResumen()">📤 Compartir resumen</button>`;
+
+    } else {
+      c.innerHTML = `
+        <div class="section-title">CONFIGURACIÓN</div>
+        <div class="config-field">
+          <label class="config-field-label">👤 MI NOMBRE</label>
+          <input id="cfg-repartidor" class="config-input" type="text" placeholder="Ej: Ramon" value="${window.config.repartidor}" />
+        </div>
+        <div class="config-field">
+          <label class="config-field-label">🚛 MI VEHÍCULO</label>
+          <input id="cfg-vehiculo" class="config-input" type="text" placeholder="Ej: Kia" value="${window.config.vehiculo}" />
+        </div>
+        <button class="config-save-btn" onclick="saveConfig()">GUARDAR</button>
+        <div id="config-saved" class="config-saved">✓ Guardado</div>
+        <div class="config-divider">─── SISTEMA ───────────────────</div>
+        <div class="config-info-row"><span class="config-info-label">Versión</span><span class="config-info-value">v4.0 🔥</span></div>`;
+    }
+  }
+
+  function compartirResumen() {
+    const hoy = todayStr();
+    const devHoy    = (window.descargas||[]).filter(d => d.fecha === hoy);
+    const viajesHoy = (window.trips||[]).filter(t => t.fecha === hoy);
+    const totalCobradoHoy = viajesHoy.reduce((sum, t) => sum + (Number(t.cobradoManual)||0), 0);
+    let texto = `REPARTO · ${formatDate(hoy)}\n🧑‍✈️ ${window.config.repartidor||'—'} · 🚛 ${window.config.vehiculo||'—'}\n✅ Viajes: ${viajesHoy.length} · ↩️ Devoluciones: ${devHoy.length} · 💵 Cobrado: $${totalCobradoHoy.toLocaleString('es-AR')}`;
+    if (devHoy.length > 0) {
+      texto += `\n\n↩️ MERCADERÍA QUE VUELVE:\n`;
+      devHoy.forEach(d => { texto += `• ${d.cliente} → ${d.motivo}`; if(d.detalle) texto += ` (${d.detalle})`; texto += '\n'; });
+    }
+    if (navigator.share) navigator.share({ title: 'Resumen REPARTO', text: texto });
+    else navigator.clipboard.writeText(texto).then(() => alert('Copiado al portapapeles'));
+  }
+
+  function saveConfig() {
+    window.config.repartidor = document.getElementById('cfg-repartidor').value.trim();
+    window.config.vehiculo   = document.getElementById('cfg-vehiculo').value.trim();
+    localStorage.setItem('cfg_repartidor', window.config.repartidor);
+    localStorage.setItem('cfg_vehiculo',   window.config.vehiculo);
+    const msg = document.getElementById('config-saved');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2000);
+  }
+
+  function openModal(id, mode) {
+    window.editingId = id || null;
+    window.modalMode = mode || (window.currentTab === 'descarga' ? 'descarga' : 'viaje');
+
+    let data = null;
+    if (id) {
+      data = window.modalMode === 'viaje'
+        ? (window.trips||[]).find(t => t.firebaseId === id)
+        : (window.descargas||[]).find(d => d.firebaseId === id);
+    }
+    const isEdit = !!data;
+
+    document.getElementById('modal-title-text').textContent = isEdit
+      ? (window.modalMode === 'viaje' ? 'Editar Viaje' : 'Editar Devolución')
+      : (window.modalMode === 'viaje' ? 'Nuevo Viaje'  : 'Registrar Devolución');
+
+    const reps    = window.repsDisponibles || [];
+    const camions = window.camionesDisponibles || [];
+
+    const repInput = reps.length > 0
+      ? `<select id="input-rep" class="select-input"><option value="">Seleccioná...</option>${reps.map(r=>`<option value="${r}" ${data&&data.rep===r?'selected':''}>${r}</option>`).join('')}</select>`
+      : `<input id="input-rep" class="field-input" type="text" value="${data?data.rep:window.config.repartidor}" placeholder="Nombre del repartidor" />`;
+
+    const camionInput = camions.length > 0
+      ? `<select id="input-camion" class="select-input"><option value="">Seleccioná...</option>${camions.map(c=>`<option value="${c}" ${data&&data.camion===c?'selected':''}>${c}</option>`).join('')}</select>`
+      : `<input id="input-camion" class="field-input" type="text" value="${data?data.camion:window.config.vehiculo}" placeholder="Nombre del vehículo" />`;
+
+    if (window.modalMode === 'viaje') {
+      // Mostrar quien registra (solo lectura, ya configurado)
+      const repDisplay = `<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-family:'DM Mono',monospace;font-size:13px;color:#475569">&#x1F464; ${window.config.repartidor} &nbsp;·&nbsp; &#x1F69B; ${window.config.vehiculo}</div>`;
+      document.getElementById('modal-body').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div><label class="field-label">REPARTIDOR / VEHÍCULO</label>${repDisplay}</div>
+          <div><label class="field-label">&#x1F3EA; NOMBRE CLIENTE</label>
+            <input id="input-cliente-viaje" class="field-input" type="text" value="${data?data.clienteNombre:''}" placeholder="Nombre del cliente" /></div>
+          <div><label class="field-label">&#x1F4C5; FECHA</label>
+            <input id="input-fecha" class="field-input" type="date" value="${data?data.fecha:todayStr()}" /></div>
+          <div><label class="field-label">&#x1F4B5; MONTO PAGO DE FACTURA ($)</label>
+            <input id="input-cobrado" class="field-input" type="number" inputmode="numeric" min="0" step="1" value="${data&&data.cobradoManual?data.cobradoManual:''}" placeholder="0" /></div>
+          <div><label class="field-label">&#x1F4DD; DETALLE</label>
+            <textarea id="input-detalle-viaje" class="field-input" placeholder="Observaciones, numero de factura...">${data?data.detalleViaje:''}</textarea></div>
+          <div><label class="field-label">&#x1F4F8; FOTO TRANSFERENCIA</label>
+            ${data&&data.fotoURL ? `<img src="${data.fotoURL}" style="width:100%;border-radius:10px;margin-bottom:10px;object-fit:cover;max-height:180px" onclick="window.open('${data.fotoURL}','_blank')" />` : ''}
+            <label style="display:flex;align-items:center;justify-content:center;gap:10px;border:1.5px dashed #d97706;border-radius:10px;padding:14px;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;color:#d97706;background:#fffbeb">
+              <span>&#x1F4F7; Sacar o elegir foto</span>
+              <input id="input-foto-viaje" type="file" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this)" />
+            </label>
+            <div id="foto-preview" style="margin-top:8px"></div>
+          </div>
+          <button class="primary-btn" onclick="window.saveTrip()">${isEdit?'GUARDAR CAMBIOS':'REGISTRAR VIAJE'}</button>
+        </div>`;
+    } else {
+      const chips = MOTIVOS.map(m =>
+        `<span class="motivo-chip${data&&data.motivo===m?' selected':''}" onclick="selectMotivo(this)">${m}</span>`).join('');
+      document.getElementById('modal-body').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div><label class="field-label">🏪 CLIENTE</label>
+            <input id="input-cliente" class="field-input" type="text" value="${data?data.cliente:''}" placeholder="Nombre del cliente" /></div>
+          <div><label class="field-label">📋 MOTIVO DE DEVOLUCIÓN</label>
+            <div class="motivo-chips">${chips}</div></div>
+          <div><label class="field-label">📝 DETALLE</label>
+            <textarea id="input-detalle" class="field-input" placeholder="Detalle de la mercadería que vuelve...">${data?data.detalle:''}</textarea></div>
+          <div><label class="field-label">REPARTIDOR</label>
+            <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-family:'DM Mono',monospace;font-size:13px;color:#475569">&#x1F464; ${data?data.camionero:window.config.repartidor}</div>
+            <input id="input-desc-rep" type="hidden" value="${data?data.camionero:window.config.repartidor}" /></div>
+          <div><label class="field-label">📅 FECHA</label>
+            <input id="input-desc-fecha" class="field-input" type="date" value="${data?data.fecha:todayStr()}" /></div>
+          <button class="indigo-btn" onclick="window.saveDescarga()">${isEdit?'GUARDAR CAMBIOS':'REGISTRAR DEVOLUCIÓN'}</button>
+        </div>`;
+    }
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function selectMotivo(el) {
+    document.querySelectorAll('.motivo-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); window.editingId = null; }
+  function overlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+  function previewFoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('foto-preview').innerHTML =
+        `<img src="${e.target.result}" style="width:100%;border-radius:10px;object-fit:cover;max-height:180px" />`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  renderContent();
+  // Iniciar GPS si ya está configurado
+  setTimeout(() => { if (window.config.repartidor && window.iniciarGPS) window.iniciarGPS(); }, 1000);
+</script>
+</body>
+</html>
